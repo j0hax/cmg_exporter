@@ -9,6 +9,8 @@ This exporter is _tailor-made_ for tracking power consumption of colocated serve
 
 ## Method of Operation
 
+**⚠️ This software is experimental:** While its purpose is clear, usage may change substantially until a stable release.
+
 An institute's server rack consists of two PDUs:
 - a left one (ending in an even IP)
 - a right one (ending in an odd IP)
