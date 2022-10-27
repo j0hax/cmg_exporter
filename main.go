@@ -59,16 +59,26 @@ func handler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	metrics.GetOrCreateGauge("pdu_total_power", func() float64 {
+	// Get the name of the rack
+	name, err := net.LookupAddr(rightIP.String())
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	rack := name[0][0:3]
+
+	s := fmt.Sprintf(`pdu_total_power{rack="%s"}`, rack)
+	metrics.GetOrCreateGauge(s, func() float64 {
 		return left + right
 	})
 
-	s := fmt.Sprintf(`pdu_left_power{instance="%s"}`, leftIP.String())
+	s = fmt.Sprintf(`pdu_left_power{rack="%s"}`, rack)
 	metrics.GetOrCreateGauge(s, func() float64 {
 		return left
 	})
 
-	s = fmt.Sprintf(`pdu_right_power{instance="%s"}`, rightIP.String())
+	s = fmt.Sprintf(`pdu_right_power{rack="%s"}`, rack)
 	metrics.GetOrCreateGauge(s, func() float64 {
 		return right
 	})
