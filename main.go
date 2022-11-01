@@ -83,7 +83,7 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Create the struct describing our SNMP state
-	rightSNMP, err := connectSNMP(leftIP.String())
+	rightSNMP, err := connectSNMP(rightIP.String())
 	if err != nil {
 		log.Print(err)
 	}
