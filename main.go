@@ -6,11 +6,32 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"time"
+
+	g "github.com/gosnmp/gosnmp"
 
 	"github.com/j0hax/pdu-exporter/snmp"
 
 	"github.com/VictoriaMetrics/metrics"
 )
+
+func connectSNMP(host string) (*g.GoSNMP, error) {
+	params := &g.GoSNMP{
+		Target:    host,
+		Port:      161,
+		Community: "public",
+		Version:   g.Version2c,
+		Timeout:   time.Duration(1) * time.Second,
+		Retries:   5,
+	}
+
+	err := params.Connect()
+	if err != nil {
+		return nil, err
+	}
+
+	return params, nil
+}
 
 func handler(w http.ResponseWriter, req *http.Request) {
 	// parse URL parameters
@@ -46,14 +67,30 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	copy(rightIP, leftIP)
 	rightIP[3]++
 
+	// Create the struct describing our SNMP state
+	leftSNMP, err := connectSNMP(leftIP.String())
+	if err != nil {
+		log.Print(err)
+	}
+
+	defer leftSNMP.Conn.Close()
+
 	// Gather statistics of both PDUs
-	left, err := snmp.GetPower(leftIP.String())
+	left, err := snmp.GetPower(leftSNMP)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 
-	right, err := snmp.GetPower(rightIP.String())
+	// Create the struct describing our SNMP state
+	rightSNMP, err := connectSNMP(leftIP.String())
+	if err != nil {
+		log.Print(err)
+	}
+
+	defer rightSNMP.Conn.Close()
+
+	right, err := snmp.GetPower(rightSNMP)
 	if err != nil {
 		log.Print(err)
 		return
