@@ -29,25 +29,28 @@ func GetMfG(params *g.GoSNMP) (Manufacturer, error) {
 	return 0, errors.New("could not determine hardware")
 }
 
-func GetPower(params *g.GoSNMP) (float64, error) {
+// GetStatistics requests energy and power via SNMP.
+func GetStatistics(params *g.GoSNMP) (float64, float64, error) {
 	mfg, err := GetMfG(params)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	oids := []string{}
 
 	if mfg == Bachmann {
-		oids = append(oids, BachmannWattage)
+		oids = append(oids, BachmannWattage, BachmannEnergy)
 	} else if mfg == Rittal {
-		oids = append(oids, RittalWattage)
+		oids = append(oids, RittalWattage, RittalEnergy)
 	}
 
 	// get power
 	elec, err := params.Get(oids)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
-	return float64(elec.Variables[0].Value.(int)) / 10, nil
+	power := float64(elec.Variables[0].Value.(int)) / 10
+	energy := float64(elec.Variables[1].Value.(int)) / 10
+	return power, energy, nil
 }

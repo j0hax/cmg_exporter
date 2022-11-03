@@ -76,7 +76,7 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	defer leftSNMP.Conn.Close()
 
 	// Gather statistics of both PDUs
-	left, err := snmp.GetPower(leftSNMP)
+	lPower, lEnergy, err := snmp.GetStatistics(leftSNMP)
 	if err != nil {
 		log.Print(err)
 		return
@@ -90,7 +90,7 @@ func handler(w http.ResponseWriter, req *http.Request) {
 
 	defer rightSNMP.Conn.Close()
 
-	right, err := snmp.GetPower(rightSNMP)
+	rPower, rEnergy, err := snmp.GetStatistics(rightSNMP)
 	if err != nil {
 		log.Print(err)
 		return
@@ -107,17 +107,32 @@ func handler(w http.ResponseWriter, req *http.Request) {
 
 	s := fmt.Sprintf(`pdu_total_power{rack="%s"}`, rack)
 	metrics.GetOrCreateGauge(s, func() float64 {
-		return left + right
+		return lPower + rPower
 	})
 
 	s = fmt.Sprintf(`pdu_left_power{rack="%s"}`, rack)
 	metrics.GetOrCreateGauge(s, func() float64 {
-		return left
+		return lPower
 	})
 
 	s = fmt.Sprintf(`pdu_right_power{rack="%s"}`, rack)
 	metrics.GetOrCreateGauge(s, func() float64 {
-		return right
+		return rPower
+	})
+
+	s = fmt.Sprintf(`pdu_total_energy{rack="%s"}`, rack)
+	metrics.GetOrCreateGauge(s, func() float64 {
+		return lEnergy + rEnergy
+	})
+
+	s = fmt.Sprintf(`pdu_left_energy{rack="%s"}`, rack)
+	metrics.GetOrCreateGauge(s, func() float64 {
+		return lEnergy
+	})
+
+	s = fmt.Sprintf(`pdu_right_energy{rack="%s"}`, rack)
+	metrics.GetOrCreateGauge(s, func() float64 {
+		return rEnergy
 	})
 
 	metrics.WritePrometheus(w, true)
