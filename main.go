@@ -106,17 +106,17 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	rack := name[0][0:3]
 
 	s := fmt.Sprintf(`pdu_total_power{rack="%s"}`, rack)
-	metrics.GetOrCreateGauge(s, func() float64 {
+	metrics.NewGauge(s, func() float64 {
 		return lPower + rPower
 	})
 
 	s = fmt.Sprintf(`pdu_left_power{rack="%s"}`, rack)
-	metrics.GetOrCreateGauge(s, func() float64 {
+	metrics.NewGauge(s, func() float64 {
 		return lPower
 	})
 
 	s = fmt.Sprintf(`pdu_right_power{rack="%s"}`, rack)
-	metrics.GetOrCreateGauge(s, func() float64 {
+	metrics.NewGauge(s, func() float64 {
 		return rPower
 	})
 
