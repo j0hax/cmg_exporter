@@ -121,19 +121,16 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	})
 
 	s = fmt.Sprintf(`pdu_total_energy{rack="%s"}`, rack)
-	metrics.GetOrCreateGauge(s, func() float64 {
-		return lEnergy + rEnergy
-	})
+	c := metrics.NewFloatCounter(s)
+	c.Set(lEnergy + rEnergy)
 
 	s = fmt.Sprintf(`pdu_left_energy{rack="%s"}`, rack)
-	metrics.GetOrCreateGauge(s, func() float64 {
-		return lEnergy
-	})
+	c = metrics.NewFloatCounter(s)
+	c.Set(lEnergy)
 
 	s = fmt.Sprintf(`pdu_right_energy{rack="%s"}`, rack)
-	metrics.GetOrCreateGauge(s, func() float64 {
-		return rEnergy
-	})
+	c = metrics.NewFloatCounter(s)
+	c.Set(rEnergy)
 
 	metrics.WritePrometheus(w, true)
 	metrics.UnregisterAllMetrics()
