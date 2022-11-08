@@ -21,6 +21,22 @@ This exporter
 3. queries the wattage of both PDUs using SNMPv2
 4. provides a prometheus metric
 
+### Statistics reported
+
+To avoid confusion keep in mind:
+
+> ...a kilowatt is a unit of power but a kilowatt-hour (1 kilowatt times 1 hour) is a unit of energy. 
+
+More information can be found at the Website for [Energy Education](https://energyeducation.ca/encyclopedia/Energy_vs_power).
+
+#### Energy
+
+The _total_ wattage drawn through the PDU in its service time, in kWh.
+
+#### Power
+
+The current wattage being drawn through the PDU.
+
 ### Example
 
 ```console
