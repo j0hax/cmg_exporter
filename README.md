@@ -67,4 +67,14 @@ scrape_configs:
           target_label: instance
         - target_label: __address__
           replacement: pdu-exporter:1812 # The SNMP exporter's real hostname:port.
+      metric_relabel_configs:
+      - source_labels: [rack]
+        regex: s01 # The PDU Exporter gathers Rack number from the hostname.
+        target_label: institute
+        replacement: IMES # This can be used to assign entities to a rack via RegEx
+      - source_labels: [rack]
+        regex: s(02|12|21)
+        target_label: institute
+        replacement: IDS/IKM
+
 ```
