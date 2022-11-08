@@ -132,7 +132,7 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	c = metrics.NewFloatCounter(s)
 	c.Set(rEnergy)
 
-	metrics.WritePrometheus(w, true)
+	metrics.WritePrometheus(w, false)
 	metrics.UnregisterAllMetrics()
 }
 
