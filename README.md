@@ -18,7 +18,7 @@ An institute's server rack consists of two PDUs:
 This exporter
 1. takes one of the two possible IPs,
 2. calculates the complementing PDUs IP,
-3. queries the wattage of both PDUs using SNMPv3
+3. queries the wattage of both PDUs using SNMPv2
 4. provides a prometheus metric
 
 ### Example
