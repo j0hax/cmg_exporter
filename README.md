@@ -41,9 +41,12 @@ The current wattage being drawn through the PDU.
 
 ```console
 $ curl 'http://pdu-exporter:1812/metrics?target=10.42.42.42'
-pdu_left_power{instance="10.42.42.42"} 307
-pdu_right_power{instance="10.42.42.43"} 148
-pdu_total_power 455
+pdu_left_energy{rack="s12"} 10482.8
+pdu_left_power{rack="s12"} 438
+pdu_right_energy{rack="s12"} 6071.6
+pdu_right_power{rack="s12"} 269
+pdu_total_energy{rack="s12"} 16554.4
+pdu_total_power{rack="s12"} 707
 ```
 
 ## Installation
