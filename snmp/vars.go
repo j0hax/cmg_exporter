@@ -1,11 +1,27 @@
 package snmp
 
+// Device allows us to keep track of devices.
+//
+// It influences how statistics are queried
+type Device int
+
+// Determine our types of devices
+//
+// PDUs are Power Distribution Units,
+// LCPs are Liquiod Cooling Packages.
+const (
+	PDU Device = iota
+	LCP
+)
+
+// Manufacturer allows us to keep track of manufacturers.
+//
+// It influences which specific OIDs are used to query common parameters
 type Manufacturer int
 
-// Determine our PDU manufacturers
+// Determine our equipment manufacturers
 const (
-	Unknown Manufacturer = iota
-	Bachmann
+	Bachmann Manufacturer = iota
 	Rittal
 )
 
