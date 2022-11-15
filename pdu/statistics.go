@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/gosnmp/gosnmp"
 	"github.com/j0hax/cmg_exporter/snmp"
 )
 
@@ -33,7 +34,7 @@ func GetStatistics(target string) (float64, float64, error) {
 	if mfg == snmp.Bachmann {
 		oids = append(oids, snmp.BachmannWattage, snmp.BachmannEnergy)
 	} else if mfg == snmp.Rittal {
-		oids = append(oids, snmp.RittalWattage, snmp.RittalEnergy)
+		oids = append(oids, snmp.RittalWattage, snmp.RittalEnergy, snmp.RittalWattageAlt, snmp.RittalEnergyAlt)
 	}
 
 	// get power and energy
@@ -42,7 +43,16 @@ func GetStatistics(target string) (float64, float64, error) {
 		return 0, 0, err
 	}
 
-	power := float64(elec.Variables[0].Value.(int)) / 10
-	energy := float64(elec.Variables[1].Value.(int)) / 10
+	// Hack to filter out nil values from the old Rittal PDUs
+	pdu_values := make([]gosnmp.SnmpPDU, 0, len(elec.Variables))
+	for _, val := range elec.Variables {
+		switch val.Value.(type) {
+		case string, int: // add your desired types which will fill newSlice
+			pdu_values = append(pdu_values, val)
+		}
+	}
+
+	power := float64(pdu_values[0].Value.(int)) / 10
+	energy := float64(pdu_values[1].Value.(int)) / 10
 	return power, energy, nil
 }
