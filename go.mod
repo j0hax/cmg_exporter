@@ -1,4 +1,4 @@
-module github.com/j0hax/pdu-exporter
+module github.com/j0hax/cmg_exporter
 
 go 1.19
 
