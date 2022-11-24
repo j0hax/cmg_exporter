@@ -1,4 +1,4 @@
-# pdu-exporter
+# cmg_exporter
 
 [![Go](https://github.com/j0hax/pdu-exporter/actions/workflows/go.yml/badge.svg)](https://github.com/j0hax/pdu-exporter/actions/workflows/go.yml)
 [![Docker](https://github.com/j0hax/pdu-exporter/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/j0hax/pdu-exporter/actions/workflows/docker-publish.yml)
@@ -11,15 +11,7 @@ This exporter is _tailor-made_ for tracking power consumption of colocated serve
 
 **⚠️ This software is experimental:** While its purpose is clear, usage may change substantially until a stable release.
 
-An institute's server rack consists of two PDUs:
-- a left one (ending in an even IP)
-- a right one (ending in an odd IP)
-
-This exporter
-1. takes one of the two possible IPs,
-2. calculates the complementing PDUs IP,
-3. queries the wattage of both PDUs using SNMPv2
-4. provides a prometheus metric
+At the moment this service provides power and energy statistics for Rittal PDU-Controller, PDU-Man and Bachmann BlueNet2 PDUs. Rittal LCP support coming soon.
 
 ### Statistics reported
 
@@ -41,10 +33,6 @@ The current wattage being drawn through the PDU.
 
 ```console
 $ curl 'http://pdu-exporter:1812/metrics?target=10.42.42.42'
-pdu_left_energy{rack="s12"} 10482.8
-pdu_left_power{rack="s12"} 438
-pdu_right_energy{rack="s12"} 6071.6
-pdu_right_power{rack="s12"} 269
 pdu_total_energy{rack="s12"} 16554.4
 pdu_total_power{rack="s12"} 707
 ```
@@ -59,10 +47,12 @@ scrape_configs:
     static_configs:
       - targets:
         - 10.42.42.40 # List of targets to monitor.
-        - 10.42.42.42 # Remember to include only every second PDU.
+        - 10.42.42.41
+        - 10.42.42.42
+        - 10.42.42.43
         - 10.42.42.44
-        - 10.42.42.46
-        - 10.42.42.48
+        - 10.42.42.45
+        # etc.
       relabel_configs:
         - source_labels: [__address__]
           target_label: __param_target
