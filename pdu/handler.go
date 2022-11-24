@@ -1,76 +1,65 @@
 package pdu
 
 import (
+	"errors"
 	"fmt"
-	"log"
-	"net"
 
 	"github.com/VictoriaMetrics/metrics"
+	"github.com/gosnmp/gosnmp"
+	"github.com/j0hax/cmg_exporter/vars"
 )
 
-func Handler(target string) {
-	leftIP := net.ParseIP(target).To4()
-	if leftIP == nil {
-		log.Print("Target is not a valid IP adress")
-		return
-	}
-
-	// Ensure the IP is really the one of a left rack (last byte should be even)
-	if leftIP[3]%2 == 1 {
-		leftIP[3]--
-	}
-
-	// IP of right PDU is simply the last field increased by 1
-	rightIP := make(net.IP, len(leftIP))
-	copy(rightIP, leftIP)
-	rightIP[3]++
-
-	// Gather statistics of both PDUs
-	lPower, lEnergy, err := GetStatistics(leftIP.String())
+// GetManufacturer determines the manufactuerer of a PDU
+func GetManufacturer(g *gosnmp.GoSNMP) (Manufacturer, error) {
+	result, err := g.Get([]string{vars.TypeOID})
 	if err != nil {
-		log.Print(err)
-		return
+		return 0, err
 	}
 
-	rPower, rEnergy, err := GetStatistics(rightIP.String())
+	v := string(result.Variables[0].Value.([]byte))
+
+	switch v {
+	case "Rittal PDU":
+		return Rittal, nil
+	case "BlueNet2":
+		return Bachmann, nil
+	default:
+		return 0, errors.New("could not determine device type")
+	}
+}
+
+// GetMetrics returns the power and energy using manufacturer/model specific methods
+func GetMetrics(g *gosnmp.GoSNMP) (float64, float64, error) {
+	// Determine if the PDU is from Rittal or Bachmann
+	m, err := GetManufacturer(g)
 	if err != nil {
-		log.Print(err)
-		return
+		return 0, 0, err
 	}
 
-	// Get the name of the rack
-	name, err := net.LookupAddr(rightIP.String())
+	switch m {
+	case Bachmann:
+		return GetBachmannMetrics(g)
+	case Rittal:
+		return GetRittalMetrics(g)
+	default:
+		return 0, 0, errors.New("could not determine PDU manufacturer")
+	}
+}
+
+// Handler collects data on a PDU and registers power and energy metrics.
+func Handler(g *gosnmp.GoSNMP, rack string) {
+	p, e, err := GetMetrics(g)
 	if err != nil {
-		log.Print(err)
+		fmt.Print(err)
 		return
 	}
-
-	rack := name[0][0:3]
 
 	s := fmt.Sprintf(`pdu_total_power{rack="%s"}`, rack)
 	metrics.NewGauge(s, func() float64 {
-		return lPower + rPower
-	})
-
-	s = fmt.Sprintf(`pdu_left_power{rack="%s"}`, rack)
-	metrics.NewGauge(s, func() float64 {
-		return lPower
-	})
-
-	s = fmt.Sprintf(`pdu_right_power{rack="%s"}`, rack)
-	metrics.NewGauge(s, func() float64 {
-		return rPower
+		return p
 	})
 
 	s = fmt.Sprintf(`pdu_total_energy{rack="%s"}`, rack)
 	c := metrics.NewFloatCounter(s)
-	c.Set(lEnergy + rEnergy)
-
-	s = fmt.Sprintf(`pdu_left_energy{rack="%s"}`, rack)
-	c = metrics.NewFloatCounter(s)
-	c.Set(lEnergy)
-
-	s = fmt.Sprintf(`pdu_right_energy{rack="%s"}`, rack)
-	c = metrics.NewFloatCounter(s)
-	c.Set(rEnergy)
+	c.Set(e)
 }

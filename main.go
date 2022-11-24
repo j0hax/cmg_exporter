@@ -1,15 +1,53 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/VictoriaMetrics/metrics"
+	"github.com/gosnmp/gosnmp"
 	"github.com/j0hax/cmg_exporter/pdu"
-	"github.com/j0hax/cmg_exporter/snmp"
+	"github.com/j0hax/cmg_exporter/vars"
 )
+
+// GetRack returns the rack the device is located in based on hyphenation of the hostname.
+//
+// Assuming the DNS format follows an example like s02-pdu-links.serverraum.mgmt.mb.uni-hannover.de.
+func GetRack(target string) (string, error) {
+	name, err := net.LookupAddr(target)
+	if err != nil {
+		return "", err
+	}
+
+	i := strings.Index(name[0], "-")
+
+	return name[0][0:i], nil
+}
+
+// GetType determines if the device is a PDU or LCP
+func GetType(g *gosnmp.GoSNMP) (vars.Device, error) {
+	result, err := g.Get([]string{vars.TypeOID})
+	if err != nil {
+		return vars.Unknown, err
+	}
+
+	v := string(result.Variables[0].Value.([]byte))
+
+	switch v {
+	case "Rittal PDU":
+		return vars.Pdu, nil
+	case "BlueNet2":
+		return vars.Pdu, nil
+	case "Rittal LCP":
+		return vars.Lcp, nil
+	default:
+		return vars.Unknown, errors.New("could not determine device type")
+	}
+}
 
 // Handler is the basic entrypoint for querying devices.
 func Handler(w http.ResponseWriter, req *http.Request) {
@@ -20,34 +58,41 @@ func Handler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Determine target IP address
 	m, err := url.ParseQuery(u.RawQuery)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 
-	// Determine target IP address
 	target := m["target"][0]
 	log.Printf("%s requests information on %s", req.RemoteAddr, target)
 
-	// Determine manufacturer of target
-	dev, _, err := snmp.GetInfo(target)
+	g, err := Connect(target)
 	if err != nil {
-		errmesg := fmt.Sprintf("# ERROR: %s\r\n", err)
-		w.Write([]byte(errmesg))
 		log.Print(err)
+		return
 	}
 
-	if dev == snmp.PDU {
-		pdu.Handler(target)
-	} else if dev == snmp.LCP {
+	t, err := GetType(g)
+	if err != nil {
+		log.Print(err)
+		return
+	}
 
+	switch t {
+	case vars.Pdu:
+		rack, err := GetRack(target)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+		pdu.Handler(g, rack)
 	}
 
 	metrics.WritePrometheus(w, false)
 	metrics.UnregisterAllMetrics()
 }
-
 func main() {
 	// Expose the registered metrics at `/metrics` path.
 	http.HandleFunc("/metrics", Handler)

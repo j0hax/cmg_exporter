@@ -1,18 +1,18 @@
-// Package snmp provides common queries and variables for SNMP operations
-package snmp
+package main
 
 import (
 	"time"
 
-	g "github.com/gosnmp/gosnmp"
+	"github.com/gosnmp/gosnmp"
 )
 
-func Connect(host string) (*g.GoSNMP, error) {
-	params := &g.GoSNMP{
+// Connect creates a unique connection to a host with standard parameters
+func Connect(host string) (*gosnmp.GoSNMP, error) {
+	params := &gosnmp.GoSNMP{
 		Target:    host,
 		Port:      161,
 		Community: "public",
-		Version:   g.Version2c,
+		Version:   gosnmp.Version2c,
 		Timeout:   time.Duration(1) * time.Second,
 		Retries:   5,
 	}
