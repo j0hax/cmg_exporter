@@ -10,6 +10,7 @@ import (
 
 	"github.com/VictoriaMetrics/metrics"
 	"github.com/gosnmp/gosnmp"
+	"github.com/j0hax/cmg_exporter/lcp"
 	"github.com/j0hax/cmg_exporter/pdu"
 	"github.com/j0hax/cmg_exporter/vars"
 )
@@ -82,14 +83,16 @@ func Handler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	name, err := GetName(target)
-		if err != nil {
-			log.Print(err)
-			return
-		}
+	if err != nil {
+		log.Print(err)
+		return
+	}
 
 	switch t {
 	case vars.Pdu:
 		pdu.Handler(g, name)
+	case vars.Lcp:
+		lcp.Handler(g, name)
 	}
 
 	metrics.WritePrometheus(w, false)
