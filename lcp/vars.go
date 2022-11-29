@@ -10,29 +10,18 @@ type LCPInfo struct {
 	WaterFlowRate float64
 }
 
-// FanAvg returns the average percentage of all running fans
+// FanAvg returns the average percentage of all installed fans
 func (l *LCPInfo) FanAvg() float64 {
-	total := float64(len(l.Fans))
-
+	var total float64
 	var sum uint64
 	for _, v := range l.Fans {
-		sum += v
-	}
-
-	return float64(sum) / total
-}
-
-// ActiveFans returns the number of fans that are running
-func (l *LCPInfo) ActiveFans() int {
-	var sum int
-
-	for _, v := range l.Fans {
 		if v > 0 {
-			sum++
+			sum += v
+			total++
 		}
 	}
 
-	return sum
+	return float64(sum) / total
 }
 
 // NOTE: all integer temperatures must be divided by 100
