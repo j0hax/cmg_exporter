@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strings"
+	"regexp"
 
 	"github.com/VictoriaMetrics/metrics"
 	"github.com/gosnmp/gosnmp"
@@ -14,18 +14,19 @@ import (
 	"github.com/j0hax/cmg_exporter/vars"
 )
 
-// GetRack returns the rack the device is located in based on hyphenation of the hostname.
+// GetName returns the device name (prefix and number) via reverse DNS lookup.
+// This is used to determine the rack or unit name.
 //
-// Assuming the DNS format follows an example like s02-pdu-links.serverraum.mgmt.mb.uni-hannover.de.
-func GetRack(target string) (string, error) {
+// For example, "s02-pdu-links.serverraum.mgmt.mb.uni-hannover.de" results in "s02", and
+// lcp1.serverraum.mgmt.mb.uni-hannover.de" results in "lcp1"
+func GetName(target string) (string, error) {
 	name, err := net.LookupAddr(target)
 	if err != nil {
 		return "", err
 	}
 
-	i := strings.Index(name[0], "-")
-
-	return name[0][0:i], nil
+	re := regexp.MustCompile("[a-zA-Z]+[0-9]+")
+	return re.FindString(name[0]), nil
 }
 
 // GetType determines if the device is a PDU or LCP
@@ -80,14 +81,15 @@ func Handler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	switch t {
-	case vars.Pdu:
-		rack, err := GetRack(target)
+	name, err := GetName(target)
 		if err != nil {
 			log.Print(err)
 			return
 		}
-		pdu.Handler(g, rack)
+
+	switch t {
+	case vars.Pdu:
+		pdu.Handler(g, name)
 	}
 
 	metrics.WritePrometheus(w, false)
