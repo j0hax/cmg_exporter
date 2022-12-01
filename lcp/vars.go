@@ -1,13 +1,14 @@
 package lcp
 
 type LCPInfo struct {
-	AvgTempIn     float64
-	AvgTempOut    float64
-	InBot         float64
-	Fans          [6]uint64
-	WaterTempIn   float64
-	WaterTempOut  float64
-	WaterFlowRate float64
+	AvgTempIn      float64
+	TempInSetPoint float64
+	AvgTempOut     float64
+	InBot          float64
+	Fans           [6]uint64
+	WaterTempIn    float64
+	WaterTempOut   float64
+	WaterFlowRate  float64
 }
 
 // FanAvg returns the average percentage of all installed fans
@@ -34,6 +35,9 @@ const TempInBot = "1.3.6.1.4.1.2606.7.4.2.2.1.11.2.35"
 
 // Device 2 / Variable 45: 'Air Temp.Server In.Average.Value'
 const TempInAvg = "1.3.6.1.4.1.2606.7.4.2.2.1.11.2.45"
+
+// Device 2 / Variable 44: 'Air Temp.Server In.Average.Setpoint'
+const TempInSetPoint = "1.3.6.1.4.1.2606.7.4.2.2.1.11.2.44"
 
 /* Device 2 / Variable 54: 'Air Temp.Server Out.x.Value'
 const TempOutTop = "1.3.6.1.4.1.2606.7.4.2.2.1.11.2.54"
