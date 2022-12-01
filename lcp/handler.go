@@ -12,7 +12,7 @@ import (
 func GetMetrics(g *gosnmp.GoSNMP) (*LCPInfo, error) {
 
 	// Grab general information
-	result, err := g.Get([]string{TempInAvg, TempInSetPoint, TempOutAvg, WaterTempIn, WaterTempOut, WaterFlowRate})
+	result, err := g.Get([]string{TempInAvg, TempInSetPoint, TempOutAvg, WaterTempIn, WaterTempOut, WaterFlowRate, WaterValve})
 	if err != nil {
 		return nil, err
 	}
@@ -24,6 +24,7 @@ func GetMetrics(g *gosnmp.GoSNMP) (*LCPInfo, error) {
 		WaterTempIn:    vars.ToFloat(result, 3) / 100,
 		WaterTempOut:   vars.ToFloat(result, 4) / 100,
 		WaterFlowRate:  vars.ToFloat(result, 5) / 10,
+		WaterValve:     gosnmp.ToBigInt(result.Variables[6].Value).Uint64(),
 	}
 
 	// Grab the 6 fan speeds
@@ -75,6 +76,11 @@ func Handler(g *gosnmp.GoSNMP, unit string) {
 	s = fmt.Sprintf(`lcp_water_flow_rate{unit="%s"}`, unit)
 	metrics.NewGauge(s, func() float64 {
 		return lcp.WaterFlowRate
+	})
+
+	s = fmt.Sprintf(`lcp_water_valve{unit="%s"}`, unit)
+	metrics.NewGauge(s, func() float64 {
+		return float64(lcp.WaterValve)
 	})
 
 	s = fmt.Sprintf(`lcp_fan_avg{unit="%s"}`, unit)

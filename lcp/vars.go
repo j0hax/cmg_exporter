@@ -9,6 +9,7 @@ type LCPInfo struct {
 	WaterTempIn    float64
 	WaterTempOut   float64
 	WaterFlowRate  float64
+	WaterValve     uint64
 }
 
 // FanAvg returns the average percentage of all installed fans
@@ -62,3 +63,4 @@ var FanSpeedOIDs = []string{
 const WaterTempIn = "1.3.6.1.4.1.2606.7.4.2.2.1.11.2.135"
 const WaterTempOut = "1.3.6.1.4.1.2606.7.4.2.2.1.11.2.144"
 const WaterFlowRate = "1.3.6.1.4.1.2606.7.4.2.2.1.11.2.153"
+const WaterValve = "1.3.6.1.4.1.2606.7.4.2.2.1.11.2.159"
