@@ -84,7 +84,5 @@ func Handler(g *gosnmp.GoSNMP, unit string) {
 	})
 
 	s = fmt.Sprintf(`lcp_fan_avg{unit="%s"}`, unit)
-	metrics.NewGauge(s, func() float64 {
-		return lcp.FanAvg()
-	})
+	metrics.NewGauge(s, lcp.FanAvg)
 }
