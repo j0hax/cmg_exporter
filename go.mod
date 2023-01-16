@@ -10,4 +10,4 @@ require (
 	github.com/valyala/histogram v1.2.0 // indirect
 )
 
-require github.com/VictoriaMetrics/metrics v1.23.0
+require github.com/VictoriaMetrics/metrics v1.23.1
