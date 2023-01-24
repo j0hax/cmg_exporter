@@ -10,6 +10,7 @@ import (
 
 	"github.com/VictoriaMetrics/metrics"
 	"github.com/gosnmp/gosnmp"
+	"github.com/j0hax/cmg_exporter/general"
 	"github.com/j0hax/cmg_exporter/lcp"
 	"github.com/j0hax/cmg_exporter/pdu"
 	"github.com/j0hax/cmg_exporter/vars"
@@ -94,6 +95,8 @@ func Handler(w http.ResponseWriter, req *http.Request) {
 	case vars.Lcp:
 		lcp.Handler(g, name)
 	}
+
+	general.Handler(g, name)
 
 	metrics.WritePrometheus(w, false)
 	metrics.UnregisterAllMetrics()
