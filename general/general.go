@@ -34,6 +34,16 @@ func getUptime(g *gosnmp.GoSNMP) (float64, error) {
 	return vars.ToFloat(result, 0) / 100, nil
 }
 
+func getNumProcesses(g *gosnmp.GoSNMP) (uint64, error) {
+	result, err := g.Get([]string{SystemProcessesOID})
+	if err != nil {
+		return 0, err
+	}
+
+	// Divide by 100, as TimeTicks are represented as centiseconds
+	return gosnmp.ToBigInt(result.Variables[0].Value).Uint64(), nil
+}
+
 // SnmpTimeString parses SNMP Data into a RFC3339 compatible timestamp
 func SnmpTimeString(c []byte) string {
 	year := (int(c[0]) << 8) | int(c[1])
@@ -82,5 +92,15 @@ func Handler(g *gosnmp.GoSNMP, unit string) {
 	s = fmt.Sprintf(`device_clock_drift_seconds{unit="%s"}`, unit)
 	metrics.NewGauge(s, func() float64 {
 		return d
+	})
+
+	p, err := getNumProcesses(g)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	s = fmt.Sprintf(`device_num_processes{unit="%s"}`, unit)
+	metrics.NewGauge(s, func() float64 {
+		return float64(p)
 	})
 }
