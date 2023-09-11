@@ -2,7 +2,7 @@ module github.com/j0hax/cmg_exporter
 
 go 1.19
 
-require github.com/gosnmp/gosnmp v1.36.0
+require github.com/gosnmp/gosnmp v1.36.1
 
 require (
 	github.com/valyala/fastrand v1.1.0 // indirect
